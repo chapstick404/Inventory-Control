@@ -10,9 +10,9 @@ class DisplayWidget: #basic display widget
         win.addstr(self.value)
 class CursesDisplay: # a container to connect window and widgets together
     def __init__(self):
-        self.widgets = {}
+        self.widgets = []
 
-    def add_widget(self, widget: DisplayWidget, name: str):
-        self.widgets.
+    def add_widget(self, widget: DisplayWidget, name: str): #todo add position value
+        self.widgets.append(widget)
 
 
