@@ -3,9 +3,10 @@ import curses
 
 
 def main(stdscr):
-    widget = CursesDisplay.DisplayWidget("Everyn")
-    widget.draw(stdscr)
-    while True:
-        stdscr.getch()
+   display = CursesDisplay.CursesDisplay(stdscr)
+   display.add_widget(CursesDisplay.DisplayWidget("test"), name="root")
+   display.draw_scrn()
+   while True:
+       stdscr.getch()
 
 curses.wrapper(main)
