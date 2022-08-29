@@ -4,9 +4,17 @@ import curses
 
 def main(stdscr):
    display = CursesDisplay.CursesDisplay(stdscr)
-   display.add_widget(CursesDisplay.TitleWidget("test"), name="root")
+   mylines = ["Line {0} ".format(id)*3 for id in range(1,14)]
+   display.add_widget(CursesDisplay.ListView(mylines))
+   display.add_widget(CursesDisplay.ListView(mylines))
+   display.add_widget(CursesDisplay.ListView(mylines))
    display.draw_scrn()
    while True:
-       stdscr.getch()
+       display.widget_input()
+
+def test(stdscr):
+   while True:
+      keypress = stdscr.getch()
+      stdscr.addstr(str(keypress))
 
 curses.wrapper(main)
