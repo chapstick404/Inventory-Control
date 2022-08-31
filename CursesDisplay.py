@@ -18,9 +18,6 @@ class DisplayWidget:  # basic display widget
         self.draw_self(win)
         return None
 
-    def add_widget(self, widget):
-        self.widget.append(widget)
-
     def draw_self(self, win: curses.window):
         win.addstr(self.value)
 
