@@ -79,9 +79,7 @@ class CursesDisplay:  # a container to connect window and widgets together
 
 
         self.widgets.append([widget,
-                             self.scrn.derwin(self.scrn.getmaxyx()[0], int(self.scrn.getmaxyx()[1]/self.horizontals),
-                                              0, int(self.scrn.getmaxyx()[1] / self.horizontals) * (
-                                                          self.horizontals-1))])
+                             self.scrn.derwin(self.scrn.getmaxyx()[0], int(self.scrn.getmaxyx()[1]/self.horizontals), 0, (int(self.scrn.getmaxyx()[1]/self.horizontals)*(self.horizontals-1)))])
 
     def draw_scrn(self):
         for index in range(len(self.widgets)):
@@ -97,7 +95,7 @@ class CursesDisplay:  # a container to connect window and widgets together
         if self.new_handle is type(DisplayWidget):
             self.new_handle.handle_input(keypress)
         else:
-            if keypress == 9:
+            if keypress == 9: #todo add way for layout widget to switch subwidgets
                 self.active_widget += 1
                 if self.active_widget > len(self.widgets)-1:
                     self.active_widget = 0
