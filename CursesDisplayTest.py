@@ -8,7 +8,7 @@ def main(stdscr):
    display.add_widget(CursesDisplay.ListMenu(mylines))
 
    display.draw_scrn()
-   while True:
+   while display.value == -1:
        display.widget_input()
 
 def test(stdscr):

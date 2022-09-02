@@ -134,6 +134,14 @@ class CursesDisplay:  # a container to connect window and widgets together
         self.widgets.append([widget,
                              self.scrn.derwin(self.scrn.getmaxyx()[0], int(self.scrn.getmaxyx()[1]/self.horizontals), 0, (int(self.scrn.getmaxyx()[1]/self.horizontals)*(self.horizontals-1)))])
 
+    def clear_widgets(self):
+        self.horizontals = 0
+        self.widgets = []
+
+    def clear_widget(self, pos):
+        self.widgets.pop(pos)
+
+
     def draw_scrn(self):
         for index in range(len(self.widgets)):
             self.widgets[index][1].clear()
