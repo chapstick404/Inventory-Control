@@ -11,8 +11,8 @@ class DisplayWidget:  # basic display widget
             fg = curses.COLOR_WHITE
         if bg is None:
             bg = curses.COLOR_BLACK
-        #curses.init_pair(2, fg, bg)
-        #curses.init_pair(1, bg, fg)
+        # curses.init_pair(2, fg, bg)
+        # curses.init_pair(1, bg, fg)
 
     def draw(self, win: curses.window):  # basic class to implement the function
         self.draw_self(win)
@@ -39,10 +39,12 @@ class ListView(DisplayWidget):
         self.cursor = 0
         self.values = values
 
-
     def draw_self(self, win: curses.window):
         win.clear()
-        lines = win.getmaxyx()[0]
+        if win.getmaxyx()[0] < len(self.values):
+            lines = len(self.values)
+        else:
+            lines = win.getmaxyx()[0]
         if self.line_pos < 0:
             self.line_pos = 0
         elif self.line_pos + (lines) > len(self.values):
@@ -54,26 +56,29 @@ class ListView(DisplayWidget):
 
     def handle_input(self, win: curses.window, keypressed):
 
-
-        keypressed = str(curses.keyname(keypressed)) #is a byte object
+        keypressed = str(curses.keyname(keypressed))  # is a byte object
         if keypressed == "b'KEY_DOWN'":
             self.line_pos += 1
 
         if keypressed == "b'KEY_UP'":
             self.line_pos -= 1
 
-class ListMenu(ListView):
 
+class ListMenu(ListView):
 
     def __init__(self, values: list, onClose=None, fg=None, bg=None):
         super().__init__(values, onClose, fg, bg)
         self.list_pos = 0
         self.cursor = 1
-        self.value = -1
 
     def draw_self(self, win: curses.window):
         win.clear()
-        lines = win.getmaxyx()[0]
+        if win.getmaxyx()[0] > len(
+                self.values):  # makes sure the list wont wrap around if the screen is bigger then the values
+            lines = len(self.values)
+        else:
+            lines = win.getmaxyx()[0]
+
         if self.cursor > lines:
             self.list_pos += 1
             self.cursor = lines
@@ -83,18 +88,15 @@ class ListMenu(ListView):
                 self.list_pos = 0
             self.cursor = 1
 
-        if self.list_pos+lines > len(self.values):
-            self.list_pos = len(self.values)-lines
-        win.addstr(3, 25, str(self.cursor))
-        win.addstr(4,25,str(self.list_pos))
-        for index in range(0,lines):
-            if index+1 == self.cursor:
-                win.addstr(index, 1, self.values[index+self.list_pos], curses.A_STANDOUT)
+        if self.list_pos + lines > len(self.values):
+            self.list_pos = len(self.values) - lines
+        for index in range(0, lines):
+            if index + 1 == self.cursor:
+                win.addstr(index, 1, self.values[index + self.list_pos], curses.A_STANDOUT)
             else:
-                win.addstr(index, 1, self.values[index+self.list_pos])
+                win.addstr(index, 1, self.values[index + self.list_pos])
 
         win.refresh()
-
 
     def handle_input(self, win: curses.window, keypressed):
         keypressed = str(curses.keyname(keypressed))
@@ -107,11 +109,12 @@ class ListMenu(ListView):
 
         elif keypressed == "b'^J'":
             if self.onClose is None:
-                self.value = self.cursor+self.list_pos-1
+                self.value = self.cursor + self.list_pos - 1
             else:
-                self.onClose(self.cursor+self.list_pos-1)
+                self.onClose(self.cursor + self.list_pos - 1)
 
-
+        else:
+            None
 
 
 class CursesDisplay:  # a container to connect window and widgets together
@@ -120,27 +123,33 @@ class CursesDisplay:  # a container to connect window and widgets together
         self.widgets = []
         self.scrn = scrn
         self.horizontals = 0
+        self.value = -1
 
     def add_widget(self, widget: DisplayWidget, pos=None):  # adds widgets then creates the pads for them
         if pos is None:
             pos = "Top"
         self.horizontals += 1
-        for index in range(self.horizontals-1):  # todo copy to layout widget
+        for index in range(self.horizontals - 1):  # todo copy to layout widget
             # creates a basic horizontal layout
-            self.widgets[index][1].mvwin(0, int(self.scrn.getmaxyx()[1]/self.horizontals)*index)
-            self.widgets[index][1].resize(self.scrn.getmaxyx()[0], int(self.scrn.getmaxyx()[1]/self.horizontals))
-
+            self.widgets[index][1].mvwin(0, int(self.scrn.getmaxyx()[1] / self.horizontals) * index)
+            self.widgets[index][1].resize(self.scrn.getmaxyx()[0], int(self.scrn.getmaxyx()[1] / self.horizontals))
 
         self.widgets.append([widget,
-                             self.scrn.derwin(self.scrn.getmaxyx()[0], int(self.scrn.getmaxyx()[1]/self.horizontals), 0, (int(self.scrn.getmaxyx()[1]/self.horizontals)*(self.horizontals-1)))])
+                             self.scrn.derwin(self.scrn.getmaxyx()[0], int(self.scrn.getmaxyx()[1] / self.horizontals),
+                                              0, (int(self.scrn.getmaxyx()[1] / self.horizontals) * (
+                                             self.horizontals - 1)))])
 
     def clear_widgets(self):
         self.horizontals = 0
+        for item in self.widgets:
+            del item[1]
+            del item[0]
         self.widgets = []
 
     def clear_widget(self, pos):
+        del self.widgets[pos][0]
+        del self.widgets[pos][0]
         self.widgets.pop(pos)
-
 
     def draw_scrn(self):
         for index in range(len(self.widgets)):
@@ -148,7 +157,8 @@ class CursesDisplay:  # a container to connect window and widgets together
             self.new_handle = self.widgets[index][0].draw(self.widgets[index][1])
             self.active_widget = index
 
-        self.scrn.move(self.widgets[self.active_widget][1].getbegyx()[0], self.widgets[self.active_widget][1].getbegyx()[1])
+        self.scrn.move(self.widgets[self.active_widget][1].getbegyx()[0],
+                       self.widgets[self.active_widget][1].getbegyx()[1])
         self.scrn.refresh()
 
     def widget_input(self):
@@ -156,9 +166,9 @@ class CursesDisplay:  # a container to connect window and widgets together
         if self.new_handle is type(DisplayWidget):
             self.new_handle.handle_input(keypress)
         else:
-            if keypress == 9: #todo add way for layout widget to switch subwidgets
+            if keypress == 9:  # todo add way for layout widget to switch subwidgets
                 self.active_widget += 1
-                if self.active_widget > len(self.widgets)-1:
+                if self.active_widget > len(self.widgets) - 1:
                     self.active_widget = 0
 
         self.widgets[self.active_widget][0].handle_input(self.widgets[self.active_widget][1], keypress)
@@ -169,3 +179,9 @@ class CursesDisplay:  # a container to connect window and widgets together
         self.scrn.move(self.widgets[self.active_widget][1].getbegyx()[0],
                        self.widgets[self.active_widget][1].getbegyx()[1])
         self.scrn.refresh()
+
+    def get_value_of_widget(self, pos):
+        if hasattr(self.widgets[pos][0], "value"):
+            if self.widgets[pos][0].value is not None:
+                return self.widgets[pos][0].value
+        return None

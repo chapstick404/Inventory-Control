@@ -8,9 +8,15 @@ def main(stdscr):
    display.add_widget(CursesDisplay.ListMenu(mylines))
 
    display.draw_scrn()
-   while display.value == -1:
+   while display.get_value_of_widget(0) == None:
        display.widget_input()
 
+   selcetion = display.get_value_of_widget(0)
+   display.clear_widgets()
+   display.add_widget(CursesDisplay.TitleWidget(str(selcetion)))
+   display.draw_scrn()
+   while True:
+       display.widget_input()
 def test(stdscr):
    while True:
       keypress = stdscr.getch()
