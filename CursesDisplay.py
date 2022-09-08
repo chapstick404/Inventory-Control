@@ -33,6 +33,7 @@ class TitleWidget(DisplayWidget):
         win.addstr(self.value)
 
 
+
 class ListView(DisplayWidget):
     def __init__(self, values: list, onClose=None, fg=None, bg=None):
         super().__init__(None, onClose, fg, bg)
@@ -143,6 +144,7 @@ class CursesDisplay:  # a container to connect window and widgets together
             del item[1]
             del item[0]
         self.widgets = []
+        self.scrn.clear()
 
     def clear_widget(self, pos):
         del self.widgets[pos][0]
