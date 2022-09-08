@@ -21,8 +21,7 @@ class DisplayWidget:  # basic display widget
     def draw_self(self, win: curses.window):
         win.addstr(self.value)
 
-    def handle_input(self, win: curses.window, keypress):
-        None
+
 
 
 class TitleWidget(DisplayWidget):
@@ -113,8 +112,6 @@ class ListMenu(ListView):
             else:
                 self.onClose(self.cursor + self.list_pos - 1)
 
-        else:
-            None
 
 
 class CursesDisplay:  # a container to connect window and widgets together
