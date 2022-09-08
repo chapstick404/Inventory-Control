@@ -21,7 +21,8 @@ class DisplayWidget:  # basic display widget
     def draw_self(self, win: curses.window):
         win.addstr(self.value)
 
-
+    def handle_input(self, win: curses.window, keypress): #here because all need to have method, may need to change
+        None
 
 
 class TitleWidget(DisplayWidget):
