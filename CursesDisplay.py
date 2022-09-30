@@ -198,6 +198,10 @@ class TextBox(DisplayWidget):
             self.value = self.text_box.gather()
             if self.onClose is not None:
                 self.onClose(self.value)
+
+        pos = self.editwin.getyx()
+        self.editwin.addstr(4,4,curses.keyname(keypress))
+        self.editwin.move(pos[0], pos[1])
         self.editwin.refresh()
 
 

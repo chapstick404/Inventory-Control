@@ -12,9 +12,9 @@ def main(stdscr):
    label = CursesDisplay.LabelWidget("")
    textinput = CursesDisplay.TextBox()
    display.add_widget(CursesDisplay.ListMenu(mylines, onClose=label.change_value))
-   display.add_widget(label)
-   display.add_widget(CursesDisplay.ListView(mylines))
-   display.add_widget(CursesDisplay.MultiColumnList(myMultiLines))
+   #display.add_widget(label)
+   #display.add_widget(CursesDisplay.ListView(mylines))
+   #display.add_widget(CursesDisplay.MultiColumnList(myMultiLines))
    display.add_widget(textinput)
 
 
