@@ -1,5 +1,5 @@
 import curses
-import CursesDisplay
+import CursesWidgets
 from curses.textpad import Textbox, rectangle
 import database
 
