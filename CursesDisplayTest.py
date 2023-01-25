@@ -7,27 +7,27 @@ import curses
 def main(stdscr):
     curses.start_color()
     curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_BLUE)
-    display = CursesDisplay.Display(stdscr, log_level=1)
+    display = CursesDisplay.Display(stdscr, log_level=2)
     mylines = ["Line {0} ".format(id) * 3 for id in range(14)]
     myMultiLines = [['test0', 'test0b', 'test0c'], ['test1', 'test1b', 'test1c'], ['test2', 'test2b']]
-    label = CursesWidgets.LabelWidget("")
+    label = CursesWidgets.LabelWidget("test1")
+    label2 = CursesWidgets.LabelWidget("test2")
+    label3 = CursesWidgets.LabelWidget("test3")
     textinput = CursesWidgets.TextBox()
     layout = CursesLayouts.HorizonalLayout()
     display.layout = layout
 
     layout.add_widget(label)
-    layout.add_widget(CursesWidgets.ListView(mylines))
-    layout.add_widget(textinput)
+    layout.add_widget(label2)
+    layout.add_widget(label3)
 
-    # display.add_widget(CursesDisplay.ListMenu(mylines, onClose=label.change_value))
-    # display.add_widget(label)
-    # display.add_widget(CursesDisplay.ListView(mylines))
-    # display.add_widget(CursesDisplay.MultiColumnList(myMultiLines))
-    # display.add_widget(textinput)
 
     display.draw_scrn()
-    while display.wait_for_enter():
-        display.draw_scrn()
+    #layout.add_widget(CursesWidgets.ListView(mylines))
+    #layout.add_widget(textinput)
+
+    while True:
+        pass
 
     selcetion = display.get_value_of_widget(0)
     display.clear_widgets()
@@ -36,7 +36,35 @@ def main(stdscr):
     while True:
         display.widget_input()
 
+def smalltests(stdscr: curses.window):
+    colorlist = (("red", curses.COLOR_RED),
+                      ("green", curses.COLOR_GREEN),
+                      ("yellow", curses.COLOR_YELLOW),
+                      ("blue", curses.COLOR_BLUE),
+                      ("cyan", curses.COLOR_CYAN),
+                      ("magenta", curses.COLOR_MAGENTA),
+                      ("black", curses.COLOR_BLACK),
+                      ("white", curses.COLOR_WHITE))
+    colors = {}
+    colorpairs = 0
+    for name, i in colorlist:
+        colorpairs += 1
+        curses.init_pair(colorpairs, curses.COLOR_WHITE, i)
+        colors[name] = curses.color_pair(i)
+    stdscr.bkgd(' ', colors["green"])
 
+    testwin1 = stdscr.derwin(stdscr.getmaxyx()[0], 4, 0,0) #todo use this in actual code
+    testwin1.bkgd(' ', colors["red"])
+    # testwin1.refresh()
+    stdscr.refresh()
+
+    testwin1.mvderwin(0,5)
+    testwin1.erase()
+    testwin1.addstr(4, 0, "bl")
+    #stdscr.touchwin()
+    testwin1.refresh()
+    while True:
+        stdscr.refresh()
 def test(stdscr):
     curses.start_color()
     curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_BLUE)

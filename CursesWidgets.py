@@ -1,14 +1,15 @@
+import abc
 import curses
 import curses.textpad
 import types
 
 
-class DisplayWidget:  # basic display widget
+class DisplayWidget(abc.ABC):  # basic display widget
+    win: curses.window
 
-    def __init__(self, text: str, onClose: types.BuiltinFunctionType, win: curses.window = None):
-        self.win = win
-        self.onClose = onClose
-        self.text = text
+    @abc.abstractmethod
+    def __init__(self, value):
+        self.value = value
 
     def add_win(self, win: curses.window):
         self.win = win
@@ -16,51 +17,51 @@ class DisplayWidget:  # basic display widget
     def draw(self):  # basic class to implement the function
         self.draw_self()
 
+    @abc.abstractmethod
     def draw_self(self):
-        self.win.addstr(self.text)
-
-    def handle_input(self, keypress):  # here because all need to have method, may need to change
-        return True
+        pass
 
     def resize(self, y: int, x: int):
+        self.win.erase()
         self.win.resize(y, x)
 
 
 class TitleWidget(DisplayWidget):
-    def __init__(self, title: str, onClose=None):
-        super().__init__(title, onClose)
+    def __init__(self, title: str):
+        self.text = title
 
     def draw_self(self):
         self.win.addstr(self.text)
 
 
 class LabelWidget(TitleWidget):
-    def __init__(self, text: str, onClose=None):
-        super().__init__(text, onClose)
+    def __init__(self, text: str):
+        super().__init__(text)
         self.value_changed = True
 
-    def draw_self(self):
+    def draw_self(self, logger=None):
         if self.win is not None:
             if self.value_changed:
-                self.win.addstr(0, 0, self.text)
+                self.win.addstr(0, 0, self.value)
                 self.value_changed = False
-                #self.win.refresh()  # had to be here to update the screen
+        self.win.refresh()  # had to be here to update the screen
 
+    def handle_input(self, keypress):
+        self.draw_self()
     def change_value(self, value):
-        self.text = str(value)
+        self.value = str(value)
         self.value_changed = True
         self.draw_self()
 
 
 class ListView(DisplayWidget):
-    def __init__(self, values: list, onClose=None):
-        # noinspection PyTypeChecker
-        super().__init__(None, onClose)
+    def __init__(self, values: list):
         self.line_pos = 0
         self.cursor = 0
         self.values = values
 
-    def draw_self(self):
+    def draw_self(self, logger=None):
+
         self.win.clear()
         if self.win.getmaxyx()[0] > len(self.values):
             lines = len(self.values)
@@ -73,7 +74,6 @@ class ListView(DisplayWidget):
         for index in range(lines):
             if index < len(self.values):
                 self.win.addstr(index, 1, self.values[index + self.line_pos])
-
         self.win.refresh()
 
     def handle_input(self, keypressed):
@@ -86,15 +86,12 @@ class ListView(DisplayWidget):
             self.line_pos -= 1
 
         elif keypressed == "b'^J'":
-            if self.onClose is None:
-                return True
-            else:
-                self.onClose()
+            return True
 
 
 class MultiColumnList(ListView):
-    def __init__(self, values: list, onClose=None):
-        super().__init__(values, onClose)
+    def __init__(self, values: list):
+        super().__init__(values)
         self.lists = []
 
     def add_win(self, win: curses.window):
@@ -119,8 +116,8 @@ class MultiColumnList(ListView):
 
 class ListMenu(ListView):
 
-    def __init__(self, values: list, onClose=None):
-        super().__init__(values, onClose)
+    def __init__(self, values: list):
+        super().__init__(values)
         self.value = None
         self.list_pos = 0
         self.cursor = 1
@@ -149,7 +146,6 @@ class ListMenu(ListView):
                 self.win.addstr(index, 1, self.values[index + self.list_pos], curses.A_STANDOUT)
             else:
                 self.win.addstr(index, 1, self.values[index + self.list_pos])
-
         self.win.refresh()
 
     def handle_input(self, keypressed):
@@ -162,51 +158,49 @@ class ListMenu(ListView):
             self.cursor -= 1
 
         elif keypressed == "b'^J'":
-            if self.onClose is None:
-                self.value = self.cursor + self.list_pos - 1
-            else:
-                self.value = self.cursor + self.list_pos - 1
-                self.onClose(self.cursor + self.list_pos - 1)
+            self.value = self.cursor + self.list_pos - 1
 
 
 class TextBox(DisplayWidget):
-    def __init__(self, text=None, onClose=None):
+    def __init__(self):
         # noinspection PyTypeChecker
-        super().__init__(text, onClose)
         self.value = None
         self.text_box = None
-        self.onClose = onClose
         self.editwin = None
 
     def add_win(self, win: curses.window):
         self.win = win
         self.win.box()
-        self.editwin = self.win.derwin(1, 1)
-
+        self.editwin = self.win.derwin(self.win.getmaxyx()[0]-2, self.win.getmaxyx()[1]-2, 1, 1)
         self.text_box = curses.textpad.Textbox(self.editwin)
+        self.editwin.cursyncup()
         self.editwin.refresh()
 
+
     def draw_self(self):  # todo change size
+        self.editwin.cursyncup()
         self.editwin.refresh()
 
     def handle_input(self, keypress):
-        self.editwin.cursyncup()
         if self.text_box.do_command(keypress) == 0:
             self.value = self.text_box.gather()
-            if self.onClose is not None:
-                self.onClose(self.value)
+        self.editwin.cursyncup()
         self.editwin.refresh()
+
+    def resize(self, y: int, x: int):
+        self.win.clear()
+        self.win.resize(y, x)
+        self.win.box()
+        self.editwin.resize(y-2, x-2)
 
 
 class TextInput(TextBox):
+    #todo add user help text option
     def add_win(self, win: curses.window):
         self.win = win
-
         y, x = self.win.getmaxyx()
         self.win.resize(3, x)
         self.editwin = self.win.derwin(1, 1)
-        if self.text is not None:
-            self.editwin.addstr(self.text)
         self.text_box = curses.textpad.Textbox(self.editwin)
         self.editwin.refresh()
 
@@ -215,8 +209,6 @@ class TextInput(TextBox):
             self.value = self.text_box.gather()
         if self.text_box.do_command(keypress) == 0:
             self.value = self.text_box.gather()
-            if self.onClose is not None:
-                self.onClose(self.value)
         self.editwin.refresh()
 
     def resize(self, y: int, x: int):
@@ -224,7 +216,4 @@ class TextInput(TextBox):
         self.win.resize(3, x)
         self.win.box()
         self.editwin.resize(1, x - 3)
-        if self.text is not None:
-            self.editwin.addstr(0, 0, self.text)
         self.win.refresh()
-

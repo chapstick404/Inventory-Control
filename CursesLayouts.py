@@ -1,14 +1,18 @@
 import curses
 import curses.textpad
 import types
+from functools import singledispatch, singledispatchmethod
+
+import CursesLogger
 import CursesWidgets
 import abc
 
 
 class Layout(abc.ABC):
     win: curses.window
+    logger: CursesLogger.Logger
 
-    def __init__(self, log_level=0):
+    def __init__(self, log_level: int = 0):
         self.log_level = log_level
         self.active_widget = None
         self.new_handle = None
@@ -16,6 +20,20 @@ class Layout(abc.ABC):
         self.widgets = []
         self.value = -1
         self.screen = []
+        self.colorlist = (("red", curses.COLOR_RED),
+                     ("green", curses.COLOR_GREEN),
+                     ("yellow", curses.COLOR_YELLOW),
+                     ("blue", curses.COLOR_BLUE),
+                     ("cyan", curses.COLOR_CYAN),
+                     ("magenta", curses.COLOR_MAGENTA),
+                     ("black", curses.COLOR_BLACK),
+                     ("white", curses.COLOR_WHITE))
+        self.colors = {}
+        colorpairs = 0
+        for name, i in self.colorlist:
+            colorpairs += 1
+            curses.init_pair(colorpairs, curses.COLOR_WHITE, i)
+            self.colors[name] = curses.color_pair(i)
 
     @abc.abstractmethod
     def add_widget_to_layout(self, widget: CursesWidgets.DisplayWidget):
@@ -37,8 +55,9 @@ class Layout(abc.ABC):
         self.add_widget_to_layout(widget)
         return widget
 
-    def draw(self):
+    def draw(self, logger=None):
         for widget in self.widgets:
+            self.logger.log("Drawing Widget", str(widget.win.getbkgd()))
             self.new_handle = widget.draw()
         self.win.refresh()
 
@@ -48,12 +67,12 @@ class Layout(abc.ABC):
             self.active_widget = 0
         self.move_to_active()
 
-    def move_to_active(self): #todo tell widget to move cursor
+    def move_to_active(self):  # todo tell widget to move cursor
         self.win.move(self.widgets[self.active_widget].win.getbegyx()[0],
                       self.widgets[self.active_widget].win.getbegyx()[1])
         self.win.cursyncup()
 
-    def update_to_active(self):
+    def update_to_active(self):  # todo remove
         if hasattr(self.widgets[self.active_widget], "value"):
             if self.widgets[self.active_widget].text != -1:
                 self.value = self.widgets[self.active_widget].text
@@ -65,24 +84,37 @@ class Layout(abc.ABC):
             self.change_active()
         else:
             self.widget_input(keypress)
-            self.update_to_active()
 
     def widget_input(self, keypress):  # todo send input for any widget
         self.widgets[self.active_widget].handle_input(keypress)
+
+    def save_screen(self):
+        self.screen.append(self.widgets)
+        return len(self.screen) - 1
+
+    def load_screen(self, pos):
+        self.widgets = self.screen[pos]
+        self.win.clear()
+        self.draw()
 
 class HorizonalLayout(Layout):
 
     def add_widget_to_layout(self, widget: CursesWidgets.DisplayWidget):
         num_widgets = len(self.widgets)
-        for index in range(num_widgets):  # todo copy to layout widget
+        widget_win_size = [self.win.getmaxyx()[0], int(self.win.getmaxyx()[1] / num_widgets)]
+        for index in range(num_widgets):
             # creates a basic horizontal layout
-            if self.widgets[index].win is not None:
-                self.widgets[index].win.mvwin(0, int(self.win.getmaxyx()[1] / num_widgets) * index)
-                self.widgets[index].resize(self.win.getmaxyx()[0], int(self.win.getmaxyx()[1] / num_widgets))
+            if hasattr(self.widgets[index], "win"):
+                self.logger.log("Moving Window", str((0, int(self.win.getmaxyx()[1] / num_widgets) * index)))
+                self.widgets[index].win.mvderwin(0, widget_win_size[1] * index)
+                self.widgets[index].resize(widget_win_size[0], widget_win_size[1])
             else:
-                win = self.win.derwin(0, int(self.win.getmaxyx()[1] / num_widgets) * (num_widgets - 1))
-                self.widgets[index].add_win(win)
+                self.logger.log("Making window", str((0, int(self.win.getmaxyx()[1] / num_widgets) * (num_widgets - 1))))
+                new_win = self.win.derwin(0, int(self.win.getmaxyx()[1] / num_widgets) * (num_widgets - 1))
+                self.widgets[index].add_win(new_win)
                 self.widgets[index].resize(self.win.getmaxyx()[0], int(self.win.getmaxyx()[1] / num_widgets))
+                self.widgets[index].win.bkgd(' ',list(self.colors.values())[index])
+                self.active_widget = index
 
 
 class CursesDisplay:  # a container to connect window and widgets together
