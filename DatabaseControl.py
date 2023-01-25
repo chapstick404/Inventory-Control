@@ -101,7 +101,7 @@ class InventoryControl:
         self.layout.add_widget(text_input)
         self.display.draw_scrn()
         while text_input.value is None:
-            self.layout.widget_input()
+            self.display.handle_input()
         input_value = text_input.value
         self.read_container(input_value)
 
