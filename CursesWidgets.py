@@ -42,7 +42,7 @@ class LabelWidget(TitleWidget):
     def draw_self(self, logger=None):
         if self.win is not None:
             if self.value_changed:
-                self.win.addstr(0, 0, self.value)
+                self.win.addstr(0, 0, self.text)
                 self.value_changed = False
         self.win.refresh()  # had to be here to update the screen
 
