@@ -20,14 +20,16 @@ def main(stdscr):
     layout.add_widget(label)
     layout.add_widget(label2)
     layout.add_widget(label3)
+    layout.add_widget(textinput)
 
 
     display.draw_scrn()
     #layout.add_widget(CursesWidgets.ListView(mylines))
     #layout.add_widget(textinput)
 
-    while True:
-        pass
+    while display.wait_for_enter():
+        display.draw_scrn()
+
 
     selcetion = display.get_value_of_widget(0)
     display.clear_widgets()

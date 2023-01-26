@@ -7,10 +7,6 @@ import types
 class DisplayWidget(abc.ABC):  # basic display widget
     win: curses.window
 
-    @abc.abstractmethod
-    def __init__(self, value):
-        self.value = value
-
     def add_win(self, win: curses.window):
         self.win = win
 
@@ -25,13 +21,22 @@ class DisplayWidget(abc.ABC):  # basic display widget
         self.win.erase()
         self.win.resize(y, x)
 
+    def handle_input(self, keypress):
+        return False
 
-class TitleWidget(DisplayWidget):
+
+class ValueWidget(DisplayWidget):
+    @abc.abstractmethod
+    def __init__(self, value):
+        self.value = value
+
+
+class TitleWidget(ValueWidget):
     def __init__(self, title: str):
-        self.text = title
+        super().__init__(title)
 
     def draw_self(self):
-        self.win.addstr(self.text)
+        self.win.addstr(self.value)
 
 
 class LabelWidget(TitleWidget):
@@ -42,14 +47,18 @@ class LabelWidget(TitleWidget):
     def draw_self(self, logger=None):
         if self.win is not None:
             if self.value_changed:
-                self.win.addstr(0, 0, self.text)
+                self.win.addstr(0, 0, self.value)
                 self.value_changed = False
-        self.win.refresh()  # had to be here to update the screen
+                self.win.refresh()
 
-    def handle_input(self, keypress):
-        self.draw_self()
     def change_value(self, value):
         self.value = str(value)
+        self.value_changed = True
+        self.draw_self()
+
+    def resize(self, y: int, x: int):
+        self.win.erase()
+        self.win.resize(y, x)
         self.value_changed = True
         self.draw_self()
 
@@ -122,7 +131,7 @@ class ListMenu(ListView):
         self.list_pos = 0
         self.cursor = 1
 
-    def draw_self(self):
+    def draw_self(self, logger=None):
         self.win.clear()
         if self.win.getmaxyx()[0] > len(
                 self.values):  # makes sure the list wont wrap around if the screen is bigger then the values
@@ -171,14 +180,12 @@ class TextBox(DisplayWidget):
     def add_win(self, win: curses.window):
         self.win = win
         self.win.box()
-        self.editwin = self.win.derwin(self.win.getmaxyx()[0]-2, self.win.getmaxyx()[1]-2, 1, 1)
+        self.editwin = self.win.derwin(self.win.getmaxyx()[0] - 2, self.win.getmaxyx()[1] - 2, 1, 1)
         self.text_box = curses.textpad.Textbox(self.editwin)
         self.editwin.cursyncup()
         self.editwin.refresh()
 
-
     def draw_self(self):  # todo change size
-        self.editwin.cursyncup()
         self.editwin.refresh()
 
     def handle_input(self, keypress):
@@ -191,11 +198,11 @@ class TextBox(DisplayWidget):
         self.win.clear()
         self.win.resize(y, x)
         self.win.box()
-        self.editwin.resize(y-2, x-2)
+        self.editwin.resize(y - 2, x - 2)
 
 
 class TextInput(TextBox):
-    #todo add user help text option
+    # todo add user help text option
     def add_win(self, win: curses.window):
         self.win = win
         y, x = self.win.getmaxyx()
