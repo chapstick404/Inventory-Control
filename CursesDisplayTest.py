@@ -20,7 +20,7 @@ def main(stdscr):
     layout.add_widget(label)
     layout.add_widget(label2)
     layout.add_widget(label3)
-    layout.add_widget(textinput)
+    #layout.add_widget(textinput)
 
 
     display.draw_scrn()

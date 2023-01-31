@@ -24,8 +24,10 @@ class Display(abc.ABC):
 
     @layout.setter
     def layout(self, value: CursesLayouts.Layout): #todo change to make class here
+        scrn_size = self.scrn.getmaxyx()
         self._layout = value
         self._layout.win = self.scrn.derwin(0,0)
+        self._layout.win.resize(scrn_size[0], scrn_size[1])
         self._layout.logger = self.logger
 
     def draw_scrn(self):
