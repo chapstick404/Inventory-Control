@@ -2,13 +2,11 @@ import curses
 import CursesWidgets
 import CursesDisplay
 import CursesLayouts
-from curses.textpad import Textbox, rectangle
 import database
 
 
 class InventoryControl:
     def __init__(self, scrn):
-
         self.scrn = scrn
         self.display = CursesDisplay.Display(scrn, log_level=2)
         self.layout = CursesLayouts.HorizonalLayout()

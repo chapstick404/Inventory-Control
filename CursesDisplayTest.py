@@ -13,13 +13,17 @@ def main(stdscr):
     label = CursesWidgets.LabelWidget("test1")
     label2 = CursesWidgets.LabelWidget("test2")
     label3 = CursesWidgets.LabelWidget("test3")
-    textinput = CursesWidgets.TextBox()
-    layout = CursesLayouts.VerticalLayout()
-    display.layout = layout
+    label4 = CursesWidgets.LabelWidget("test1")
+    label5 = CursesWidgets.LabelWidget("test2")
 
-    layout.add_widget(label)
-    layout.add_widget(label2)
-    layout.add_widget(label3)
+    textinput = CursesWidgets.TextBox()
+    layout = CursesLayouts.HorizonalLayout()
+    vertlayout1 = CursesLayouts.VerticalLayout()
+    display.layout = layout
+    layout.add_widget(vertlayout1)
+    vertlayout1.add_widget(label)
+    vertlayout1.add_widget(label2)
+    vertlayout1.add_widget(label3)
     #layout.add_widget(textinput)
 
 

@@ -1,13 +1,14 @@
 import abc
 import curses
 import curses.textpad
-import types
+import CursesLogger
 
 
 class DisplayWidget(abc.ABC):  # basic display widget
     win: curses.window
-
+    logger: CursesLogger.Logger
     def __init__(self):
+
         self.accept_input = True
     def add_win(self, win: curses.window):
         self.win = win
@@ -47,7 +48,7 @@ class TitleWidget(ValueWidget):
 class LabelWidget(TitleWidget):
     def __init__(self, text: str):
         super().__init__(text)
-        self.accept_input = False
+        self.accept_input = True
         self.value_changed = True
 
     def draw_self(self, logger=None):
@@ -71,6 +72,8 @@ class LabelWidget(TitleWidget):
 
 class ListView(DisplayWidget):
     def __init__(self, values: list):
+
+        super().__init__()
         self.line_pos = 0
         self.cursor = 0
         self.values = values
@@ -178,7 +181,7 @@ class ListMenu(ListView):
 
 class TextBox(DisplayWidget):
     def __init__(self):
-        # noinspection PyTypeChecker
+        super().__init__()
         self.value = None
         self.text_box = None
         self.editwin = None
