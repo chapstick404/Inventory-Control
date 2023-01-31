@@ -12,5 +12,6 @@ class Logger():
             logfile.write("\n")
             if self.log_level > 1:
                 for logindex in range(1, self.log_level):
-                    logfile.write(logstrings[logindex])
-                    logfile.write("\n")
+                    if logindex < len(logstrings):
+                        logfile.write(logstrings[logindex])
+                        logfile.write("\n")
