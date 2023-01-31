@@ -7,10 +7,12 @@ import types
 class DisplayWidget(abc.ABC):  # basic display widget
     win: curses.window
 
+    def __init__(self):
+        self.accept_input = True
     def add_win(self, win: curses.window):
         self.win = win
 
-    def draw(self):  # basic class to implement the function
+    def draw(self):
         self.draw_self()
 
     @abc.abstractmethod
@@ -28,12 +30,15 @@ class DisplayWidget(abc.ABC):  # basic display widget
 class ValueWidget(DisplayWidget):
     @abc.abstractmethod
     def __init__(self, value):
+        super().__init__()
+        self.accept_input = True
         self.value = value
 
 
 class TitleWidget(ValueWidget):
     def __init__(self, title: str):
         super().__init__(title)
+        self.accept_input = False
 
     def draw_self(self):
         self.win.addstr(self.value)
@@ -42,6 +47,7 @@ class TitleWidget(ValueWidget):
 class LabelWidget(TitleWidget):
     def __init__(self, text: str):
         super().__init__(text)
+        self.accept_input = False
         self.value_changed = True
 
     def draw_self(self, logger=None):

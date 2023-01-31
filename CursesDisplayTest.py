@@ -14,7 +14,7 @@ def main(stdscr):
     label2 = CursesWidgets.LabelWidget("test2")
     label3 = CursesWidgets.LabelWidget("test3")
     textinput = CursesWidgets.TextBox()
-    layout = CursesLayouts.HorizonalLayout()
+    layout = CursesLayouts.VerticalLayout()
     display.layout = layout
 
     layout.add_widget(label)

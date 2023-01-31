@@ -20,6 +20,7 @@ class Layout(abc.ABC):
         self.widgets = []
         self.value = -1
         self.screen = []
+        self.allow_input=True
         self.colorlist = (("red", curses.COLOR_RED),
                      ("green", curses.COLOR_GREEN),
                      ("yellow", curses.COLOR_YELLOW),
@@ -65,7 +66,10 @@ class Layout(abc.ABC):
         self.active_widget += 1
         if self.active_widget > len(self.widgets) - 1:
             self.active_widget = 0
-        self.move_to_active()
+        if self.widgets[self.active_widget].accept_input == True:
+            self.move_to_active()
+        else:
+            self.active_widget -= 1
 
     def move_to_active(self):
         self.win.move(self.widgets[self.active_widget].win.getbegyx()[0],
